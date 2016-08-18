@@ -17,7 +17,6 @@
 
 package omega_automaton.collections;
 
-
 import javax.annotation.Nonnull;
 import java.util.*;
 

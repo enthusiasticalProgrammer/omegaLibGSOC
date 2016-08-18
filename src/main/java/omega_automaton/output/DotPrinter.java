@@ -17,18 +17,18 @@
 
 package omega_automaton.output;
 
+
+import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.collections.Collections3;
-
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DotPrinter implements HOAConsumer {
 

@@ -31,6 +31,7 @@ public interface OmegaAcceptance {
 
     /**
      * Canonical Representation as Boolean Expression
+     * 
      * @return the canonical rep.
      */
     BooleanExpression<AtomAcceptance> getBooleanExpression();

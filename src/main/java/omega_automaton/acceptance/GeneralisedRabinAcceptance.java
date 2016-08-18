@@ -17,6 +17,15 @@
 
 package omega_automaton.acceptance;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import omega_automaton.AutomatonState;
@@ -25,11 +34,6 @@ import omega_automaton.collections.Tuple;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.output.HOAConsumerExtended;
 
-import java.util.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-
 public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements OmegaAcceptance {
 
     protected final IdentityHashMap<TranSet<S>, Integer> acceptanceNumbers;
@@ -37,9 +41,9 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
 
     public GeneralisedRabinAcceptance(List<Tuple<TranSet<S>, List<TranSet<S>>>> acceptanceCondition) {
         this.acceptanceCondition = acceptanceCondition;
-        for( int j=0;j<this.acceptanceCondition.size();j++){
+        for (int j = 0; j < this.acceptanceCondition.size(); j++) {
             Tuple<TranSet<S>, List<TranSet<S>>> pair = this.acceptanceCondition.get(j);
-            for(int i=0; i< pair.right.size();i++){
+            for (int i = 0; i < pair.right.size(); i++) {
                 pair.right.set(i, pair.right.get(i).copy());
             }
             this.acceptanceCondition.set(j, new Tuple<>(pair.left.copy(), pair.right));
@@ -47,8 +51,15 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         this.acceptanceNumbers = new IdentityHashMap<>();
     }
 
+    /**
+     * Used by Prism
+     */
     public List<Tuple<TranSet<S>, List<TranSet<S>>>> unmodifiableCopyOfAcceptanceCondition() {
         return Collections.unmodifiableList(acceptanceCondition);
+    }
+
+    public void addPair(Tuple<TranSet<S>, List<TranSet<S>>> tuple) {
+        acceptanceCondition.add(tuple);
     }
 
     @Override
@@ -148,7 +159,7 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
     }
 
     /**
-     * checks if premise implies conclusion (as acceptance pair) 
+     * checks if premise implies conclusion (as acceptance pair)
      */
     public boolean implies(int premiseIndex, int conclusionIndex) {
         Tuple<TranSet<S>, List<TranSet<S>>> premise = acceptanceCondition.get(premiseIndex);
@@ -164,11 +175,35 @@ public class GeneralisedRabinAcceptance<S extends AutomatonState<?>> implements 
         return Collections.emptyMap();
     }
 
-    public void remove(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> toRemove) {
-        this.acceptanceCondition.removeAll(toRemove);
+    public void removeIndices(Set<Integer> toRemove) {
+        toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(index -> acceptanceCondition.remove(index.intValue()));
     }
 
-    public void removeIndices(Set<Integer> toRemove) {
-        toRemove.stream().sorted(Collections.reverseOrder()).forEachOrdered(acceptanceCondition::remove);
+    public void addEach(Collection<Tuple<TranSet<S>, List<TranSet<S>>>> temp) {
+        acceptanceCondition.addAll(temp);
+    }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("GeneralisedRabinAcceptance\n");
+        for (int i = 0; i < acceptanceCondition.size(); i++) {
+            builder.append("\nPair ");
+            builder.append(i);
+            builder.append('\n');
+            builder.append('\t');
+            builder.append("Fin: ");
+            builder.append(acceptanceCondition.get(i).left);
+            for (int j = 0; j < acceptanceCondition.get(i).right.size(); j++) {
+                builder.append("\n\tInf: ");
+                builder.append(j);
+                builder.append(": ");
+                builder.append(acceptanceCondition.get(i).right.get(j));
+            }
+        }
+        return builder.toString();
+    }
+
+    public void removeEach() {
+        acceptanceCondition.clear();
     }
 }

@@ -57,12 +57,13 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
      * enough, also the checks for forbiddenEdges and allowedState need to be
      * constant for the function to run in linear time.
      *
-     * @param a: Automaton, for which the class is analysed
+     * @param a:
+     *            Automaton, for which the class is analysed
      * @return list of set of states, where each set corresponds to a (maximal)
-     * SCC.. The list is ordered according to the topological ordering
-     * in the "condensation graph", aka the graph where the SCCs are
-     * vertices, ordered such that for each transition a->b in the
-     * condensation graph, a is in the list before b
+     *         SCC.. The list is ordered according to the topological ordering
+     *         in the "condensation graph", aka the graph where the SCCs are
+     *         vertices, ordered such that for each transition a->b in the
+     *         condensation graph, a is in the list before b
      */
     public static <S extends AutomatonState<S>> List<Set<S>> SCCsStates(Automaton<S, ?> a) {
         SCCAnalyser<S> s = new SCCAnalyser<>(a);
@@ -74,9 +75,12 @@ public class SCCAnalyser<S extends AutomatonState<S>> {
      * This method refines the SCC in order to have the sub-SCCs if
      * forbiddenEdges are not allowed to use
      *
-     * @param SCC:            the SCC that will be processed
-     * @param forbiddenEdges: the edges that are forbidden
-     * @param a:              Automaton, for which the SCC-Analysis has to be made
+     * @param SCC:
+     *            the SCC that will be processed
+     * @param forbiddenEdges:
+     *            the edges that are forbidden
+     * @param a:
+     *            Automaton, for which the SCC-Analysis has to be made
      * @return the sub-SCCs of the SCC as list in topologic ordering
      */
     public static <S extends AutomatonState<S>> List<TranSet<S>> subSCCsTran(Automaton<S, ?> a, TranSet<S> SCC, TranSet<S> forbiddenEdges) {

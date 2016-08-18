@@ -17,13 +17,17 @@
 
 package omega_automaton.collections;
 
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import omega_automaton.Automaton;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
-
-import java.util.*;
-import java.util.function.Consumer;
 
 public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
 
@@ -73,8 +77,7 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
     }
 
     public boolean containsAll(TranSet<S> other) {
-        return other.backingMap.entrySet().stream()
-                .allMatch(e -> containsAll(e.getKey(), e.getValue()));
+        return other.backingMap.entrySet().stream().allMatch(e -> containsAll(e.getKey(), e.getValue()));
     }
 
     public boolean containsAll(Automaton<?, ?> automaton) {
@@ -84,7 +87,7 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
         });
     }
 
-    public boolean intersects(TranSet<S> other) {
+    public boolean intersects(TranSet<? super S> other) {
         return backingMap.entrySet().stream().anyMatch(e -> other.backingMap.getOrDefault(e.getKey(), empty).intersects(e.getValue()));
     }
 
@@ -134,11 +137,12 @@ public class TranSet<S> implements Iterable<Map.Entry<S, ValuationSet>> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         TranSet<?> tranSet = (TranSet<?>) o;
-        return Objects.equals(backingMap, tranSet.backingMap) &&
-                Objects.equals(factory, tranSet.factory);
+        return Objects.equals(backingMap, tranSet.backingMap) && Objects.equals(factory, tranSet.factory);
     }
 
     @Override

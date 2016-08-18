@@ -17,24 +17,33 @@
 
 package omega_automaton.output;
 
-import com.google.common.collect.BiMap;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import com.google.common.collect.BiMap;
+
 import jhoafparser.ast.AtomAcceptance;
+import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
 import omega_automaton.AutomatonState;
+import omega_automaton.acceptance.GeneralisedRabinAcceptance;
 import omega_automaton.acceptance.NoneAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
-
-import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class HOAConsumerExtended {
 
@@ -43,16 +52,18 @@ public class HOAConsumerExtended {
     private final HOAConsumer hoa;
     private final Map<AutomatonState<?>, Integer> stateNumbers;
     protected AutomatonState<?> currentState;
+    private final @Nullable BiMap<String, Integer> literalNames;
 
-    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, @Nullable BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance, AutomatonState<?> initialState,
-                               int size) {
+    public HOAConsumerExtended(HOAConsumer hoa, ValuationSetFactory valSetFac, @Nullable BiMap<String, Integer> aliases, @Nonnull OmegaAcceptance acceptance,
+            AutomatonState<?> initialState, int size) {
         this.hoa = hoa;
         stateNumbers = new HashMap<>(size);
+        literalNames = aliases;
 
         try {
             hoa.notifyHeaderStart("v1");
 
-            hoa.setTool("Owl", "* *"); // Owl in a cave.
+            hoa.setTool("Rabinizer Controller Synthesis", "1.0");
             hoa.setName("Automaton for " + ((initialState != null) ? initialState.toString() : "false"));
 
             if (size >= 0) {
@@ -61,7 +72,6 @@ public class HOAConsumerExtended {
 
             if (initialState != null && size > 0) {
                 hoa.addStartStates(Collections.singletonList(getStateId(initialState)));
-
                 if (acceptance.getName() != null) {
                     hoa.provideAcceptanceName(acceptance.getName(), acceptance.getNameExtra());
                 }
@@ -73,13 +83,25 @@ public class HOAConsumerExtended {
                 hoa.setAcceptanceCondition(acceptance1.getAcceptanceSets(), acceptance1.getBooleanExpression());
             }
 
-            hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(i -> {
-                if (aliases != null) {
-                    return aliases.inverse().get(i);
+            if (literalNames == null) {
+                hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(Integer::toString).collect(Collectors.toList()));
+            } else {
+                hoa.setAPs(IntStream.range(0, valSetFac.getSize()).mapToObj(i -> literalNames.inverse().get(i)).collect(Collectors.toList()));
+                for (Entry<String, Integer> entry : literalNames.entrySet()) {
+                    hoa.addAlias(entry.getKey(), new BooleanExpression<>(AtomLabel.createAPIndex(entry.getValue())));
                 }
+            }
+            if (acceptance instanceof GeneralisedRabinAcceptance) {
+                Map<String, List<Object>> map = ((GeneralisedRabinAcceptance<?>) acceptance).miscellaneousAnnotations();
 
-                return Integer.toString(i);}).collect(Collectors.toList()));
-
+                try {
+                    for (Entry<String, List<Object>> entry : map.entrySet()) {
+                        hoa.addMiscHeader(entry.getKey(), entry.getValue());
+                    }
+                } catch (HOAConsumerException ex) {
+                    logger.warning(ex.toString());
+                }
+            }
             hoa.notifyBodyStart();
 
             if (initialState == null || size == 0) {
@@ -148,7 +170,7 @@ public class HOAConsumerExtended {
         }
 
         try {
-            hoa.addEdgeWithLabel(getStateId(currentState), label.toExpression(), Collections.singletonList(getStateId(end)), accSets);
+            hoa.addEdgeWithLabel(getStateId(currentState), label.toExpression(literalNames), Collections.singletonList(getStateId(end)), accSets);
         } catch (HOAConsumerException ex) {
             logger.warning(ex.toString());
         }
@@ -156,6 +178,8 @@ public class HOAConsumerExtended {
 
     private int getStateId(AutomatonState<?> state) {
         stateNumbers.putIfAbsent(state, stateNumbers.size());
+        int result = stateNumbers.get(state);
         return stateNumbers.get(state);
     }
+
 }

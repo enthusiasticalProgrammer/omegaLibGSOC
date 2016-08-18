@@ -32,11 +32,12 @@ public class Edge<S> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Edge<?> tuple = (Edge<?>) o;
-        return Objects.equals(successor, tuple.successor) &&
-                Objects.equals(acceptance, tuple.acceptance);
+        return Objects.equals(successor, tuple.successor) && Objects.equals(acceptance, tuple.acceptance);
     }
 
     @Override

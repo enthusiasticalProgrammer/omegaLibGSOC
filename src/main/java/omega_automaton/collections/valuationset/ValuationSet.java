@@ -17,23 +17,32 @@
 
 package omega_automaton.collections.valuationset;
 
+import java.util.BitSet;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import com.google.common.collect.BiMap;
+
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 
-import javax.annotation.Nonnull;
-import java.util.BitSet;
-
 /**
- * This interface is very similar to {@link java.util.Set<BitSet>} but breaks on purpose several standard contracts, such
- * as returning a boolean, if the operation changes the underlying data-structure. This information is never used and it is
- * costly to support this.
+ * This interface is very similar to {@link java.util.Set<BitSet>} but breaks on
+ * purpose several standard contracts, such as returning a boolean, if the
+ * operation changes the underlying data-structure. This information is never
+ * used and it is costly to support this.
  */
 public interface ValuationSet extends Iterable<BitSet> {
     ValuationSet complement();
 
     boolean isUniverse();
 
-    BooleanExpression<AtomLabel> toExpression();
+    BooleanExpression<AtomLabel> toExpression(@Nullable BiMap<String, Integer> literalNames);
+
+    default BooleanExpression<AtomLabel> toExpression() {
+        return toExpression(null);
+    }
 
     boolean contains(BitSet valuation);
 
@@ -46,8 +55,11 @@ public interface ValuationSet extends Iterable<BitSet> {
     void addAll(@Nonnull ValuationSet newVs);
 
     /**
-     * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also frees {@param other}.
-     * @param other the other valuation set.
+     * Does the same as {@link ValuationSet#addAll(ValuationSet)}, but also
+     * frees {@param other}.
+     * 
+     * @param other
+     *            the other valuation set.
      */
     void addAllWith(@Nonnull ValuationSet other);
 

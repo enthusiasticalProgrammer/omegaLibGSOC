@@ -17,21 +17,27 @@
 
 package omega_automaton;
 
+import java.util.ArrayDeque;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
+
 import com.google.common.collect.BiMap;
+
 import jhoafparser.consumer.HOAConsumer;
 import omega_automaton.acceptance.AllAcceptance;
 import omega_automaton.acceptance.OmegaAcceptance;
 import omega_automaton.collections.Collections3;
-import omega_automaton.collections.TranSet;
 import omega_automaton.collections.valuationset.ValuationSet;
 import omega_automaton.collections.valuationset.ValuationSetFactory;
 import omega_automaton.output.HOAConsumerExtended;
-
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAcceptance> {
 
@@ -167,7 +173,7 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     public Set<S> getStates() {
-        return transitions.keySet();
+        return new HashSet<>(transitions.keySet());
     }
 
     public void removeUnreachableStates() {
@@ -187,7 +193,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
      * only state false. Use this method only if you are really sure you want to
      * remove the states!
      *
-     * @param states: Set of states that is to be removed
+     * @param states:
+     *            Set of states that is to be removed
      */
     public void removeStates(Collection<S> states) {
         if (states.contains(initialState)) {
@@ -223,17 +230,18 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     /**
      * This method has no side effects
      *
-     * @param scc: set of states
+     * @param scc:
+     *            set of states
      * @return true if the only transitions from scc go to scc again and false
-     * otherwise
+     *         otherwise
      */
     public boolean isBSCC(Set<S> scc) {
-        for (S s : scc){
-           for (Edge<S> outgoingEdge : getSuccessors(s).keySet()){
-               if(!scc.contains(outgoingEdge.successor)) {
-                   return false;
-               }
-           }
+        for (S s : scc) {
+            for (Edge<S> outgoingEdge : getSuccessors(s).keySet()) {
+                if (!scc.contains(outgoingEdge.successor)) {
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -268,7 +276,8 @@ public abstract class Automaton<S extends AutomatonState<S>, Acc extends OmegaAc
     }
 
     /**
-     * Override this method, if you want output additional edges for {@param state} not present in {@link Automaton#transitions}.
+     * Override this method, if you want output additional edges for
+     * {@param state} not present in {@link Automaton#transitions}.
      *
      * @param state
      * @param hoa

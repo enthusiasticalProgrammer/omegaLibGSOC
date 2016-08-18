@@ -17,18 +17,22 @@
 
 package omega_automaton.collections.valuationset;
 
-import com.google.common.collect.Sets;
-import jdd.bdd.BDD;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import omega_automaton.collections.Collections3;
-
-import javax.annotation.Nonnull;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.stream.IntStream;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.Sets;
+
+import jdd.bdd.BDD;
+import jhoafparser.ast.AtomLabel;
+import jhoafparser.ast.BooleanExpression;
+import omega_automaton.collections.Collections3;
 
 public class BDDValuationSetFactory implements ValuationSetFactory {
 
@@ -72,7 +76,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
     private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
     private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
 
-    BooleanExpression<AtomLabel> createRepresentative(int bdd) {
+    BooleanExpression<AtomLabel> createRepresentative(int bdd, @Nullable BiMap<String, Integer> literalNames) {
         if (bdd == BDD.ONE) {
             return TRUE;
         }
@@ -81,10 +85,14 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
             return FALSE;
         }
 
-        BooleanExpression<AtomLabel> letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVar(bdd)));
-
-        BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd));
-        BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd));
+        BooleanExpression<AtomLabel> letter;
+        if (literalNames == null) {
+            letter = new BooleanExpression<>(AtomLabel.createAPIndex(factory.getVar(bdd)));
+        } else {
+            letter = new BooleanExpression<>(AtomLabel.createAlias(literalNames.inverse().get(factory.getVar(bdd))));
+        }
+        BooleanExpression<AtomLabel> pos = createRepresentative(factory.getHigh(bdd), literalNames);
+        BooleanExpression<AtomLabel> neg = createRepresentative(factory.getLow(bdd), literalNames);
 
         if (pos.isTRUE()) {
             pos = letter;
@@ -111,6 +119,7 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         int bdd = BDD.ONE;
 
         while (base.hasNext()) {
+
             int i = base.nextInt();
 
             if (set.get(i)) {
@@ -138,14 +147,16 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         }
 
         @Override
-        public BooleanExpression<AtomLabel> toExpression() {
-            return createRepresentative(index);
+        public BooleanExpression<AtomLabel> toExpression(@Nullable BiMap<String, Integer> literalNames) {
+            return createRepresentative(index, literalNames);
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             BDDValuationSet bitSets = (BDDValuationSet) o;
             return index == bitSets.index;
         }
@@ -240,6 +251,12 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         @Override
         public boolean contains(BitSet valuation) {
             return factory.member(index, valuation);
+            /*
+             * boolean[] valu = new boolean[valuation.size()]; for (int i = 0; i
+             * < valuation.size(); i++) { valu[i] = valuation.get(i); } if
+             * (index > valu.length) { return false; } return
+             * factory.member(index, valu);
+             */
         }
 
         @Override
@@ -265,7 +282,8 @@ public class BDDValuationSetFactory implements ValuationSetFactory {
         @Override
         protected void finalize() {
             if (BDD.ONE < index) {
-                // System.out.println("Memory Leak. Call free() on BDDValuationSet.");
+                // System.out.println("Memory Leak. Call free() on
+                // BDDValuationSet.");
                 free();
             }
         }

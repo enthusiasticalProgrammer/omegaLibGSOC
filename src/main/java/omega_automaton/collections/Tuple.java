@@ -31,11 +31,12 @@ public class Tuple<L, R> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Tuple<?, ?> tuple = (Tuple<?, ?>) o;
-        return Objects.equals(left, tuple.left) &&
-                Objects.equals(right, tuple.right);
+        return Objects.equals(left, tuple.left) && Objects.equals(right, tuple.right);
     }
 
     @Override

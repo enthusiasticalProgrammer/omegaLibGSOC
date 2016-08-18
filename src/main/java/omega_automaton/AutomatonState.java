@@ -29,7 +29,7 @@ import java.util.Map;
 
 // TODO: migrate to abstract class?
 public interface AutomatonState<S> {
-    
+
     ValuationSetFactory getFactory();
 
     @Nonnull
@@ -40,11 +40,13 @@ public interface AutomatonState<S> {
     }
 
     /**
-     * Compute the successor of a state and return the corresponding edge. The acceptance indices are additionally
-     * stored in the {@link Edge}
+     * Compute the successor of a state and return the corresponding edge. The
+     * acceptance indices are additionally stored in the {@link Edge}
      *
-     * @param valuation set of letters read.
-     * @return null is returned if the transition would move to a non-accepting BSCC.
+     * @param valuation
+     *            set of letters read.
+     * @return null is returned if the transition would move to a non-accepting
+     *         BSCC.
      */
     @Nullable
     Edge<S> getSuccessor(BitSet valuation);
